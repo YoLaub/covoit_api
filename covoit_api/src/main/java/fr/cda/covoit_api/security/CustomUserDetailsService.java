@@ -21,11 +21,17 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé avec l'email: " + email));
 
+        boolean isEnabled = "ACTIVE".equalsIgnoreCase(user.getStatus().getLabel());
+
+        boolean isAccountNonLocked = !"BANNED".equalsIgnoreCase(user.getStatus().getLabel());
+
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
-                user.getEtat(), // Gère l'activation/désactivation (Phase 2)
-                true, true, true,
+                isEnabled,
+                true,
+                true,
+                isAccountNonLocked,
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().getLabel()))
         );
     }

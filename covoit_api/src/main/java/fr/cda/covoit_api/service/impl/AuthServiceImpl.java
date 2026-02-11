@@ -1,6 +1,7 @@
 package fr.cda.covoit_api.service.impl;
 
 import fr.cda.covoit_api.domain.entity.Role;
+import fr.cda.covoit_api.domain.entity.Status;
 import fr.cda.covoit_api.domain.entity.User;
 import fr.cda.covoit_api.dto.request.RegisterRequest;
 import fr.cda.covoit_api.dto.response.AuthResponse;
@@ -32,18 +33,16 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
-        // 1. Vérification unicité (Phase 2 Plan.md)
+        // 1. Vérification unicité
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email déjà utilisé");
         }
 
         // 2. Création de l'utilisateur
         User user = new User();
-        user.setPseudo(request.getPseudo());
         user.setEmail(request.getEmail());
-        // Hachage du mot de passe (Phase 2 Plan.md)
+        // Hachage du mot de passe
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEtat(true);
 
         // Note: Ici, on devrait récupérer le rôle "USER" depuis un RoleRepository
         // Pour l'exemple, nous supposons qu'il est déjà injecté ou géré
@@ -55,7 +54,6 @@ public class AuthServiceImpl implements IAuthService {
 
         return AuthResponse.builder()
                 .token(token)
-                .pseudo(user.getPseudo())
                 .email(user.getEmail())
                 .build();
     }
@@ -76,7 +74,6 @@ public class AuthServiceImpl implements IAuthService {
 
         return AuthResponse.builder()
                 .token(token)
-                .pseudo(user.getPseudo())
                 .email(user.getEmail())
                 .role(user.getRole().getLabel())
                 .build();

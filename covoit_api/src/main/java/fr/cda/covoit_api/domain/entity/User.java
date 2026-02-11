@@ -2,20 +2,19 @@ package fr.cda.covoit_api.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.io.ObjectInputFilter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_profil")
+@Table(name = "user_account")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_user")
+    @Column(name = "Id_account")
     private Integer id;
-
-    @Column(unique = true, nullable = false)
-    private String pseudo;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -35,8 +34,9 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @Column(nullable = false)
-    private Boolean etat = true;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_status", nullable = false)
+    private Status status;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_role", nullable = false)
