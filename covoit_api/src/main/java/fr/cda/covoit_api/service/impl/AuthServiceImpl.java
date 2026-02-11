@@ -44,8 +44,7 @@ public class AuthServiceImpl implements IAuthService {
         // Hachage du mot de passe
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Note: Ici, on devrait récupérer le rôle "USER" depuis un RoleRepository
-        // Pour l'exemple, nous supposons qu'il est déjà injecté ou géré
+        //TO DO: Récupérer le rôle "USER" depuis un RoleRepository
 
         userRepository.save(user);
 
