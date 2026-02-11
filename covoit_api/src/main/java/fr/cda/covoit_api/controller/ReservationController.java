@@ -1,0 +1,36 @@
+package fr.cda.covoit_api.controller;
+
+import fr.cda.covoit_api.domain.entity.UserRoute;
+import fr.cda.covoit_api.service.interfaces.IReservationService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/trips")
+public class ReservationController {
+
+    private final IReservationService reservationService;
+
+    public ReservationController(IReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
+
+    @PostMapping("/{id}/person")
+    public ResponseEntity<UserRoute> reserve(@PathVariable Integer id, Principal principal) {
+        return ResponseEntity.ok(reservationService.reservePlace(id, principal.getName()));
+    }
+
+    @GetMapping("/my-reservations")
+    public ResponseEntity<List<UserRoute>> getMyReservations(Principal principal) {
+        return ResponseEntity.ok(reservationService.getPassengerReservations(principal.getName()));
+    }
+
+    @DeleteMapping("/{id}/person")
+    public ResponseEntity<Void> cancel(@PathVariable Integer id, Principal principal) {
+        reservationService.cancelReservation(id, principal.getName());
+        return ResponseEntity.noContent().build();
+    }
+}

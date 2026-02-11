@@ -12,14 +12,17 @@ public class Location {
     @Column(name = "id_location")
     private Integer id;
 
-    @Column(name = "label_address", nullable = false)
-    private String address;
+    @Column(name = "street_number")
+    private String streetNumber;
 
-    @Column(nullable = false, length = 100)
-    private String city;
+    @Column(name = "street_name", nullable = false)
+    private String streetName;
 
-    @Column(nullable = false, length = 10)
-    private String postcode;
+    @Column(name = "postal_code", nullable = false, length = 10)
+    private String postalCode;
+
+    @Column(name = "city_name", nullable = false, length = 100)
+    private String cityName;
 
     @Column(nullable = false)
     private Double latitude;
