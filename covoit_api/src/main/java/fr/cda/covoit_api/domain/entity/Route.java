@@ -29,4 +29,8 @@ public class Route {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_icon", nullable = false)
     private Icon icon;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_profil", nullable = false)
+    private Profil driver;
 }

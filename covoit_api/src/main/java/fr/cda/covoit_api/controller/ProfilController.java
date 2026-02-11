@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/profil")
+@RequestMapping("/api/persons")
 public class ProfilController {
     private final IProfilService profilService;
 
@@ -19,7 +19,7 @@ public class ProfilController {
         this.profilService = profilService;
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<Profil> create(@RequestBody Profil profil, Principal principal) {
         return ResponseEntity.ok(profilService.createProfil(profil, principal.getName()));
     }
