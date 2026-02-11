@@ -19,14 +19,10 @@ public class RouteController {
 
     private final IRouteService routeService;
 
-    // Injection par constructeur (Recommandé par rapport à @Autowired)
     public RouteController(IRouteService routeService) {
         this.routeService = routeService;
     }
 
-    /**
-     * Recherche de trajets filtrés.
-     */
     @GetMapping
     public ResponseEntity<List<Route>> search(
             @RequestParam(required = false) String startingcity,
@@ -39,53 +35,47 @@ public class RouteController {
 
     /**
      * Publication d'un trajet par un conducteur.
+     * Mise à jour pour utiliser les champs détaillés de l'entité Location.
      */
     @PostMapping
     public ResponseEntity<Route> create(@RequestBody RouteRequest dto, Principal principal) {
-        // 1. Mapping manuel du DTO vers l'entité Route
+        // 1. Mapping du DTO vers l'entité Route
         Route route = new Route();
         route.setPlace(dto.getAvailableSeats());
         route.setDate(dto.getTripDate());
         route.setHour(dto.getTripHour());
         route.setDistance(dto.getKms());
 
-        // 2. Mapping manuel des adresses (Location)
-        // Note: On concatène le numéro et la rue pour le champ 'address' de l'entité
-        Location start = new Location(
-                null,
-                dto.getStartingAddress().getStreetNumber() + " " + dto.getStartingAddress().getStreetName(),
-                dto.getStartingAddress().getCity(),
-                dto.getStartingAddress().getPostalCode(),
-                dto.getStartingAddress().getLatitude(),
-                dto.getStartingAddress().getLongitude()
-        );
+        // 2. Mapping vers l'entité Location (Départ)
+        // Utilisation des setters de Location.java conformément au nouveau schéma
+        Location start = new Location();
+        start.setStreetNumber(dto.getStartingAddress().getStreetNumber());
+        start.setStreetName(dto.getStartingAddress().getStreetName());
+        start.setPostalCode(dto.getStartingAddress().getPostalCode());
+        start.setCityName(dto.getStartingAddress().getCity()); // Correspond à cityName dans Location.java
+        start.setLatitude(dto.getStartingAddress().getLatitude());
+        start.setLongitude(dto.getStartingAddress().getLongitude());
 
-        Location end = new Location(
-                null,
-                dto.getArrivalAddress().getStreetNumber() + " " + dto.getArrivalAddress().getStreetName(),
-                dto.getArrivalAddress().getCity(),
-                dto.getArrivalAddress().getPostalCode(),
-                dto.getArrivalAddress().getLatitude(),
-                dto.getArrivalAddress().getLongitude()
-        );
+        // 3. Mapping vers l'entité Location (Arrivée)
+        Location end = new Location();
+        end.setStreetNumber(dto.getArrivalAddress().getStreetNumber());
+        end.setStreetName(dto.getArrivalAddress().getStreetName());
+        end.setPostalCode(dto.getArrivalAddress().getPostalCode());
+        end.setCityName(dto.getArrivalAddress().getCity());
+        end.setLatitude(dto.getArrivalAddress().getLatitude());
+        end.setLongitude(dto.getArrivalAddress().getLongitude());
 
-        // 3. Appel au service avec l'email du conducteur (issu du token JWT)
+        // 4. Appel au service avec les objets Location complets
         Route saved = routeService.createRoute(route, start, end, principal.getName());
 
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
-    /**
-     * Récupérer le détail d'un trajet par son ID.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<Route> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(routeService.getById(id));
     }
 
-    /**
-     * Supprimer un trajet (Seul le conducteur ou l'Admin peut faire ça).
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id, Principal principal) {
         routeService.deleteRoute(id, principal.getName());

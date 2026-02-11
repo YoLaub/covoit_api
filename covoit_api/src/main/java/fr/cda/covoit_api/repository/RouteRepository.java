@@ -19,8 +19,8 @@ public interface RouteRepository extends JpaRepository<Route, Integer> {
     @Query("SELECT r FROM Route r " +
             "JOIN RouteLocation rlStart ON r.id = rlStart.route.id " +
             "JOIN RouteLocation rlEnd ON r.id = rlEnd.route.id " +
-            "WHERE rlStart.type = 'starting' AND rlStart.location.city = :startCity " +
-            "AND rlEnd.type = 'arrival' AND rlEnd.location.city = :endCity " +
+            "WHERE rlStart.type = 'starting' AND rlStart.location.cityName = :startCity " +
+            "AND rlEnd.type = 'arrival' AND rlEnd.location.cityName = :endCity " +
             "AND r.date = :tripDate")
     List<Route> findBySearchCriteria(
             @Param("startCity") String startCity,

@@ -16,18 +16,5 @@ public class CovoitApiApplication {
 		SpringApplication.run(CovoitApiApplication.class, args);
 	}
 
-    @Bean
-    CommandLineRunner init(RoleRepository roleRepo, StatusRepository statusRepo) {
-        return args -> {
-            if (roleRepo.findByLabel("USER").isEmpty()) {
-                roleRepo.save(new Role(null, "USER"));
-                roleRepo.save(new Role(null, "ADMIN"));
-            }
-            if (statusRepo.findByLabel("ACTIVE").isEmpty()) {
-                statusRepo.save(new Status(null, "ACTIVE"));
-                statusRepo.save(new Status(null, "BANNED"));
-            }
-        };
-    }
 
 }
