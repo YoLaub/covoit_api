@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Extraction du header spécifique défini dans Plan.md
+        // Extraction du header
         String token = request.getHeader("x-auth-token");
 
         if (token != null && tokenProvider.validateToken(token)) {
