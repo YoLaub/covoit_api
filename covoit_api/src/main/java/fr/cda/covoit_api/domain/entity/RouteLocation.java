@@ -22,5 +22,5 @@ public class RouteLocation {
     private Location location;
 
     @Column(nullable = false)
-    private String type; // 'start', 'end', 'waypoint'
+    private String type;
 }

@@ -3,7 +3,10 @@ package fr.cda.covoit_api.service.interfaces;
 import fr.cda.covoit_api.domain.entity.Profil;
 import fr.cda.covoit_api.domain.entity.Vehicle;
 import fr.cda.covoit_api.dto.request.ProfilRequest;
+import fr.cda.covoit_api.dto.response.RouteResponse;
 import jakarta.transaction.Transactional;
+
+import java.util.List;
 
 public interface IProfilService {
     Profil createProfil(ProfilRequest dto, String userEmail);
@@ -17,4 +20,6 @@ public interface IProfilService {
     Vehicle getVehicleByEmail(String email);
     Vehicle updateVehicle(Integer id, Vehicle vehicleDetails, String email);
     void deleteVehicle(Integer id, String email);
+    List<RouteResponse> getDriverTrips(Integer profilId);
+    List<RouteResponse> getPassengerTrips(Integer profilId);
 }

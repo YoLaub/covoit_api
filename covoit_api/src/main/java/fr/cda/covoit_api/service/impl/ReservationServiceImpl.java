@@ -1,9 +1,12 @@
 package fr.cda.covoit_api.service.impl;
 
 import fr.cda.covoit_api.domain.entity.*;
+import fr.cda.covoit_api.dto.response.ReservationResponse;
+import fr.cda.covoit_api.mapper.EntityMapper;
 import fr.cda.covoit_api.repository.*;
 import fr.cda.covoit_api.service.interfaces.IEmailService;
 import fr.cda.covoit_api.service.interfaces.IReservationService;
+import fr.cda.covoit_api.service.interfaces.IRouteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +14,7 @@ import fr.cda.covoit_api.exception.BusinessException;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,10 +26,12 @@ public class ReservationServiceImpl implements IReservationService {
     private final IEmailService emailService;
     private static final String STATUS_CANCELLED = "cancelled";
     private static final String STATUS_CONFIRMED = "confirmed";
+    private final IRouteService routeService; // Injection nécessaire
+    private final EntityMapper entityMapper;
 
     @Override
     @Transactional
-    public UserRoute reservePlace(Integer routeId, String passengerEmail) {
+    public ReservationResponse reservePlace(Integer routeId, String passengerEmail) {
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new BusinessException("Trajet non trouvé", HttpStatus.NOT_FOUND));
 
@@ -67,7 +73,9 @@ public class ReservationServiceImpl implements IReservationService {
                 "Le passager " + passenger.getFirstname() + " a réservé une place sur votre trajet."
         );
 
-        return saved;
+        Map<String, Location> locations = routeService.getLocationsForRoute(routeId);
+
+        return entityMapper.toReservationResponse(saved, locations.get("starting"), locations.get("arrival"));
     }
 
     @Override
@@ -96,10 +104,15 @@ public class ReservationServiceImpl implements IReservationService {
     }
 
     @Override
-    public List<UserRoute> getPassengerReservations(String email) {
+    public List<ReservationResponse> getPassengerReservations(String email) {
         Profil passenger = profilRepository.findByUserEmail(email)
                 .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
 
-        return userRouteRepository.findByPassengerIdAndStatusNot(passenger.getId(), STATUS_CANCELLED);
+        List<UserRoute> reservations = userRouteRepository.findByPassengerIdAndStatusNot(passenger.getId(), STATUS_CANCELLED);
+
+        return reservations.stream().map(res -> {
+            Map<String, Location> locs = routeService.getLocationsForRoute(res.getRoute().getId());
+            return entityMapper.toReservationResponse(res, locs.get("starting"), locs.get("arrival"));
+        }).toList();
     }
 }

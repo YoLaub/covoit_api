@@ -1,18 +1,20 @@
 package fr.cda.covoit_api.service.impl;
 
-import fr.cda.covoit_api.domain.entity.Profil;
-import fr.cda.covoit_api.domain.entity.User;
-import fr.cda.covoit_api.domain.entity.Vehicle;
+import fr.cda.covoit_api.domain.entity.*;
 import fr.cda.covoit_api.dto.request.ProfilRequest;
+import fr.cda.covoit_api.dto.response.RouteResponse;
 import fr.cda.covoit_api.exception.BusinessException;
-import fr.cda.covoit_api.repository.ProfilRepository;
-import fr.cda.covoit_api.repository.UserRepository;
-import fr.cda.covoit_api.repository.VehicleRepository;
+import fr.cda.covoit_api.mapper.EntityMapper;
+import fr.cda.covoit_api.repository.*;
 import fr.cda.covoit_api.service.interfaces.IProfilService;
+import fr.cda.covoit_api.service.interfaces.IRouteService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,13 @@ public class ProfilServiceImpl implements IProfilService {
     private final ProfilRepository profilRepository;
     private final UserRepository userRepository;
     private final VehicleRepository vehicleRepository;
+
+    private final RouteRepository routeRepository;
+    private final UserRouteRepository userRouteRepository;
+    private final IRouteService routeService;
+    private final EntityMapper entityMapper;
+
+    private static final String PROFIL_NOT_FOUND ="Profil non trouvé";
 
     @Override
     public Profil createProfil(ProfilRequest dto, String userEmail) {
@@ -41,7 +50,7 @@ public class ProfilServiceImpl implements IProfilService {
             throw new BusinessException("L'utilisateur possède déjà un véhicule.", HttpStatus.CONFLICT);
         }
         Profil profil = profilRepository.findById(profilId)
-                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND));
         vehicle.setOwner(profil);
         return vehicleRepository.save(vehicle);
     }
@@ -49,13 +58,13 @@ public class ProfilServiceImpl implements IProfilService {
     @Override
     public Profil getProfilByEmail(String email) {
         return profilRepository.findByUserEmail(email)
-                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND));
     }
 
     @Override
     public Profil updateProfil(Integer id, ProfilRequest dto, String emailRequestor) {
         Profil current = profilRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         if (!current.getUser().getEmail().equals(emailRequestor)) {
             throw new BusinessException("Action non autorisée", HttpStatus.FORBIDDEN);
@@ -72,7 +81,7 @@ public class ProfilServiceImpl implements IProfilService {
     @Override
     public void deleteProfil(Integer id, String requestorEmail) {
         Profil profil = profilRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         // Sécurité : Seul l'utilisateur ou un ADMIN peut supprimer
         if (!profil.getUser().getEmail().equals(requestorEmail)) {
@@ -120,5 +129,35 @@ public class ProfilServiceImpl implements IProfilService {
         }
 
         vehicleRepository.delete(current);
+    }
+
+    @Override
+    public List<RouteResponse> getDriverTrips(Integer profilId) {
+        if (!profilRepository.existsById(profilId)) {
+            throw new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        List<Route> routes = routeRepository.findByDriverId(profilId);
+
+        return routes.stream().map(route -> {
+            Map<String, Location> locs = routeService.getLocationsForRoute(route.getId());
+            return entityMapper.toRouteResponse(route, locs.get("starting"), locs.get("arrival"));
+        }).toList();
+    }
+
+    @Override
+    public List<RouteResponse> getPassengerTrips(Integer profilId) {
+        if (!profilRepository.existsById(profilId)) {
+            throw new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND);
+        }
+
+        // Récupère les associations UserRoute du passager
+        List<UserRoute> reservations = userRouteRepository.findByPassengerId(profilId);
+
+        return reservations.stream().map(res -> {
+            Route route = res.getRoute();
+            Map<String, Location> locs = routeService.getLocationsForRoute(route.getId());
+            return entityMapper.toRouteResponse(route, locs.get("starting"), locs.get("arrival"));
+        }).toList();
     }
 }

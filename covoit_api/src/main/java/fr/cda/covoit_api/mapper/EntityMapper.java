@@ -3,10 +3,7 @@ package fr.cda.covoit_api.mapper;
 import fr.cda.covoit_api.domain.entity.*;
 import fr.cda.covoit_api.dto.request.RouteRequest;
 import fr.cda.covoit_api.dto.request.VehicleRequest;
-import fr.cda.covoit_api.dto.response.LocationResponse;
-import fr.cda.covoit_api.dto.response.ProfilResponse;
-import fr.cda.covoit_api.dto.response.RouteResponse;
-import fr.cda.covoit_api.dto.response.VehicleResponse;
+import fr.cda.covoit_api.dto.response.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -96,6 +93,29 @@ public class EntityMapper {
                 res.setBrandName(vehicle.getModel().getBrand().getLabel());
             }
         }
+        return res;
+    }
+
+    public BrandResponse toBrandResponse(Brand brand) {
+        if (brand == null) return null;
+        return new BrandResponse(brand.getId(), brand.getLabel());
+    }
+
+    public ReservationResponse toReservationResponse(UserRoute ur, Location start, Location end) {
+        if (ur == null) return null;
+        ReservationResponse res = new ReservationResponse();
+        res.setRouteId(ur.getRoute().getId());
+        res.setStatus(ur.getStatus());
+        res.setCreatedAt(ur.getCreatedAt());
+
+        if (ur.getRoute() != null) {
+            res.setTripDate(ur.getRoute().getDate().toString() + " " + ur.getRoute().getHour().toString());
+            res.setDriverName(ur.getRoute().getDriver().getFirstname() + " " + ur.getRoute().getDriver().getLastname());
+        }
+
+        if (start != null) res.setDepartureCity(start.getCityName());
+        if (end != null) res.setArrivalCity(end.getCityName());
+
         return res;
     }
 }

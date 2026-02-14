@@ -1,6 +1,7 @@
 package fr.cda.covoit_api.controller;
 
 import fr.cda.covoit_api.domain.entity.UserRoute;
+import fr.cda.covoit_api.dto.response.ReservationResponse;
 import fr.cda.covoit_api.service.interfaces.IReservationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +20,12 @@ public class ReservationController {
     }
 
     @PostMapping("/{id}/person")
-    public ResponseEntity<UserRoute> reserve(@PathVariable Integer id, Principal principal) {
+    public ResponseEntity<ReservationResponse> reserve(@PathVariable Integer id, Principal principal) {
         return ResponseEntity.ok(reservationService.reservePlace(id, principal.getName()));
     }
 
     @GetMapping("/my-reservations")
-    public ResponseEntity<List<UserRoute>> getMyReservations(Principal principal) {
+    public ResponseEntity<List<ReservationResponse>> getMyReservations(Principal principal) {
         return ResponseEntity.ok(reservationService.getPassengerReservations(principal.getName()));
     }
 
