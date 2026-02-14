@@ -1,49 +1,51 @@
 package fr.cda.covoit_api.service.impl;
 
 import fr.cda.covoit_api.domain.entity.*;
+import fr.cda.covoit_api.exception.BusinessException;
 import fr.cda.covoit_api.repository.*;
 import fr.cda.covoit_api.service.interfaces.IRouteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class RouteServiceImpl  implements IRouteService {
+public class RouteServiceImpl implements IRouteService {
+
+    private static final String STARTING = "starting";
+    private static final String ARRIVAL = "arrival";
 
     private final RouteRepository routeRepository;
     private final LocationRepository locationRepository;
     private final RouteLocationRepository routeLocationRepository;
     private final ProfilRepository profilRepository;
 
+    @Override
     @Transactional
     public Route createRoute(Route route, Location start, Location end, String email) {
-        // 1. Récupérer le conducteur
         Profil driver = profilRepository.findByUserEmail(email)
-                .orElseThrow(() -> new RuntimeException("Profil introuvable"));
+                .orElseThrow(() -> new BusinessException("Profil introuvable", HttpStatus.NOT_FOUND));
         route.setDriver(driver);
 
-        // 2. Sauvegarder les localisations
         Location savedStart = locationRepository.save(start);
         Location savedEnd = locationRepository.save(end);
-
-        // 3. Sauvegarder le trajet
         Route savedRoute = routeRepository.save(route);
 
-        // 4. Lier le départ
         RouteLocation startLink = new RouteLocation(
                 new RouteLocationId(savedRoute.getId(), savedStart.getId()),
-                savedRoute, savedStart, "starting"
+                savedRoute, savedStart, STARTING
         );
         routeLocationRepository.save(startLink);
 
-        // 5. Lier l'arrivée
         RouteLocation endLink = new RouteLocation(
                 new RouteLocationId(savedRoute.getId(), savedEnd.getId()),
-                savedRoute, savedEnd, "arrival"
+                savedRoute, savedEnd, ARRIVAL
         );
         routeLocationRepository.save(endLink);
 
@@ -57,14 +59,30 @@ public class RouteServiceImpl  implements IRouteService {
 
     @Override
     public Route getById(Integer id) {
-        return routeRepository.findById(id).orElseThrow(() -> new RuntimeException("Trajet introuvable"));
+        return routeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Trajet introuvable", HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    public Map<String, Location> getLocationsForRoute(Integer routeId) {
+        List<RouteLocation> links = routeLocationRepository.findByIdRouteId(routeId);
+        Map<String, Location> locations = new HashMap<>();
+        for (RouteLocation link : links) {
+            locations.put(link.getType(), link.getLocation());
+        }
+        return locations;
     }
 
     @Override
     @Transactional
     public void deleteRoute(Integer id, String email) {
-        // Vérification que l'utilisateur est bien le driver (via email)
-        // Logique de notification (Phase 7) et suppression cascade
+        Route route = routeRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Trajet introuvable", HttpStatus.NOT_FOUND));
+
+        if (!route.getDriver().getUser().getEmail().equals(email)) {
+            throw new BusinessException("Vous n'êtes pas le conducteur de ce trajet", HttpStatus.FORBIDDEN);
+        }
+
         routeRepository.deleteById(id);
     }
 }

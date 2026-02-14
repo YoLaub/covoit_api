@@ -16,4 +16,6 @@ public interface UserRouteRepository extends JpaRepository<UserRoute, UserRouteI
 
     // Récupère tous les passagers d'un trajet spécifique
     List<UserRoute> findByRouteId(Integer routeId);
+
+    List<UserRoute> findByPassengerIdAndStatusNot(Integer id, String cancelled);
 }
