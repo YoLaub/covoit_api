@@ -11,6 +11,7 @@ public class RouteResponse {
     private Short availableSeats;
     private LocalDate date;
     private LocalTime hour;
+    private String iconLabel;
     private String driverName;
     private LocationResponse departure;
     private LocationResponse arrival;

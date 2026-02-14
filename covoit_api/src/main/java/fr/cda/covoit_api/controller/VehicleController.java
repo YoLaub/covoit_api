@@ -1,9 +1,15 @@
 package fr.cda.covoit_api.controller;
 
-import fr.cda.covoit_api.domain.entity.Profil;
-import fr.cda.covoit_api.domain.entity.Vehicle;
+import fr.cda.covoit_api.domain.entity.*;
+import fr.cda.covoit_api.dto.request.VehicleRequest;
+import fr.cda.covoit_api.dto.response.VehicleResponse;
+import fr.cda.covoit_api.exception.BusinessException;
+import fr.cda.covoit_api.mapper.EntityMapper;
+import fr.cda.covoit_api.repository.ModelRepository;
 import fr.cda.covoit_api.repository.ProfilRepository;
 import fr.cda.covoit_api.service.interfaces.IProfilService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,28 +17,47 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 
 @RestController
-@RequestMapping("/api/cars") // Aligné sur Doc_API.md (avec préfixe /api)
+@RequestMapping("/api/cars")
+@RequiredArgsConstructor
 public class VehicleController {
 
     private final IProfilService profilService;
     private final ProfilRepository profilRepository;
-
-    public VehicleController(IProfilService profilService, ProfilRepository profilRepository) {
-        this.profilService = profilService;
-        this.profilRepository = profilRepository;
-    }
+    private final ModelRepository modelRepository;
+    private final EntityMapper entityMapper;
 
     @PostMapping
-    public ResponseEntity<Vehicle> create(@RequestBody Vehicle vehicle, Principal principal) {
-        // 1. Récupérer le profil via l'email de l'utilisateur authentifié
+    public ResponseEntity<VehicleResponse> create(@Valid @RequestBody VehicleRequest dto, Principal principal) {
         Profil profil = profilRepository.findByUserEmail(principal.getName())
-                .orElseThrow(() -> new RuntimeException("Profil non trouvé pour l'utilisateur"));
+                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
 
-        // 2. Appel au service qui vérifie la règle "1 seul véhicule"
-        Vehicle savedVehicle = profilService.addVehicle(vehicle, profil.getId());
-        return new ResponseEntity<>(savedVehicle, HttpStatus.CREATED);
+        Model model = modelRepository.findById(dto.getModelId())
+                .orElseThrow(() -> new BusinessException("Modèle non trouvé", HttpStatus.NOT_FOUND));
+
+        Vehicle vehicle = entityMapper.toVehicle(dto, model);
+        Vehicle saved = profilService.addVehicle(vehicle, profil.getId());
+        return new ResponseEntity<>(entityMapper.toVehicleResponse(saved), HttpStatus.CREATED);
     }
 
-    // TODO: (GET, PUT, DELETE) vérifier que le véhicule appartient bien au profil de l'utilisateur (principal.getName())
+    @GetMapping("/my-car")
+    public ResponseEntity<VehicleResponse> getMyVehicle(Principal principal) {
+        Vehicle v = profilService.getVehicleByEmail(principal.getName());
+        return ResponseEntity.ok(entityMapper.toVehicleResponse(v));
+    }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<VehicleResponse> update(@PathVariable Integer id, @Valid @RequestBody VehicleRequest dto, Principal principal) {
+        Model model = modelRepository.findById(dto.getModelId())
+                .orElseThrow(() -> new BusinessException("Modèle non trouvé", HttpStatus.NOT_FOUND));
+
+        Vehicle details = entityMapper.toVehicle(dto, model);
+        Vehicle updated = profilService.updateVehicle(id, details, principal.getName());
+        return ResponseEntity.ok(entityMapper.toVehicleResponse(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id, Principal principal) {
+        profilService.deleteVehicle(id, principal.getName());
+        return ResponseEntity.noContent().build();
+    }
 }

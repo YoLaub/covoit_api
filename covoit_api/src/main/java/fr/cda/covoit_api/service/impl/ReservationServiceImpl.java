@@ -46,7 +46,7 @@ public class ReservationServiceImpl implements IReservationService {
         });
 
         // Règle métier : Vérifier la disponibilité des places
-        long currentPassengers = userRouteRepository.countByRouteIdAndStatusNot(routeId, "STATUS_CANCELLED");
+        long currentPassengers = userRouteRepository.countByRouteIdAndStatusNot(routeId, STATUS_CANCELLED);
         if (currentPassengers >= route.getPlace()) {
             throw new BusinessException("Plus de places disponibles pour ce trajet", HttpStatus.CONFLICT);
         }
@@ -80,7 +80,7 @@ public class ReservationServiceImpl implements IReservationService {
         UserRoute reservation = userRouteRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Réservation non trouvée", HttpStatus.NOT_FOUND));
 
-        if ("STATUS_CANCELLED".equals(reservation.getStatus())) {
+        if (STATUS_CANCELLED.equals(reservation.getStatus())) {
             throw new BusinessException("Cette réservation est déjà annulée", HttpStatus.BAD_REQUEST);
         }
 

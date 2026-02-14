@@ -3,7 +3,6 @@ package fr.cda.covoit_api.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.ObjectInputFilter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -41,4 +40,7 @@ public class User {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_role", nullable = false)
     private Role role;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profil profil;
 }

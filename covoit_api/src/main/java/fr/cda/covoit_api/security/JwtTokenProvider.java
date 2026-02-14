@@ -2,13 +2,16 @@ package fr.cda.covoit_api.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    private final String JWT_SECRET = "votre_cle_secrete_tres_longue_et_securisee_123456";
+
+    @Value("${jwt.secret:}")
+    private String JWT_SECRET;
     private final long JWT_EXPIRATION = 86400000L; // 24h
 
     private Key getSigningKey() {

@@ -16,12 +16,12 @@ public interface RouteRepository extends JpaRepository<Route, Integer> {
      * Recherche des trajets en filtrant par ville de départ, ville d'arrivée et date.
      * Cette requête effectue des jointures sur la table d'association RouteLocation.
      */
-    @Query("SELECT r FROM Route r " +
-            "JOIN RouteLocation rlStart ON r.id = rlStart.route.id " +
-            "JOIN RouteLocation rlEnd ON r.id = rlEnd.route.id " +
-            "WHERE rlStart.type = 'starting' AND rlStart.location.cityName = :startCity " +
-            "AND rlEnd.type = 'arrival' AND rlEnd.location.cityName = :endCity " +
-            "AND r.date = :tripDate")
+    @Query("SELECT DISTINCT r FROM Route r " +
+            "JOIN RouteLocation rlStart ON r.id = rlStart.route.id AND rlStart.type = 'starting' " +
+            "JOIN RouteLocation rlEnd ON r.id = rlEnd.route.id AND rlEnd.type = 'arrival' " +
+            "WHERE (:startCity IS NULL OR LOWER(CAST(rlStart.location.cityName AS string)) = LOWER(CAST(:startCity AS string))) " +
+            "AND (:endCity IS NULL OR LOWER(CAST(rlEnd.location.cityName AS string)) = LOWER(CAST(:endCity AS string))) " +
+            "AND (CAST(:tripDate AS date) IS NULL OR r.date = :tripDate)")
     List<Route> findBySearchCriteria(
             @Param("startCity") String startCity,
             @Param("endCity") String endCity,

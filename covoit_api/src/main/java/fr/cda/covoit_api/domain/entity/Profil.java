@@ -31,4 +31,7 @@ public class Profil {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Id_account", nullable = false)
     private User user;
+
+    @OneToOne(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Vehicle vehicle;
 }

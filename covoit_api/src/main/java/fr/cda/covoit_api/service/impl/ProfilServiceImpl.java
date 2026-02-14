@@ -9,6 +9,7 @@ import fr.cda.covoit_api.repository.ProfilRepository;
 import fr.cda.covoit_api.repository.UserRepository;
 import fr.cda.covoit_api.repository.VehicleRepository;
 import fr.cda.covoit_api.service.interfaces.IProfilService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -65,5 +66,59 @@ public class ProfilServiceImpl implements IProfilService {
         current.setPhone(dto.getPhone());
 
         return profilRepository.save(current);
+    }
+
+    @Transactional
+    @Override
+    public void deleteProfil(Integer id, String requestorEmail) {
+        Profil profil = profilRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Profil non trouvé", HttpStatus.NOT_FOUND));
+
+        // Sécurité : Seul l'utilisateur ou un ADMIN peut supprimer
+        if (!profil.getUser().getEmail().equals(requestorEmail)) {
+            // Logique de vérification de rôle ADMIN pourrait être ajoutée ici
+            throw new BusinessException("Non autorisé", HttpStatus.FORBIDDEN);
+        }
+
+        // Suppression du compte User (le cascade JPA s'occupera du Profil et du Véhicule)
+        userRepository.delete(profil.getUser());
+    }
+
+    @Override
+    public Vehicle getVehicleByEmail(String email) {
+        return vehicleRepository.findByOwnerUserEmail(email)
+                .orElseThrow(() -> new BusinessException("Aucun véhicule trouvé pour cet utilisateur", HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    @Transactional
+    public Vehicle updateVehicle(Integer id, Vehicle details, String emailRequestor) {
+        Vehicle current = vehicleRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Véhicule introuvable", HttpStatus.NOT_FOUND));
+
+        // Sécurité : Vérifier que le véhicule appartient bien à l'utilisateur qui fait la requête
+        if (!current.getOwner().getUser().getEmail().equals(emailRequestor)) {
+            throw new BusinessException("Vous n'êtes pas autorisé à modifier ce véhicule", HttpStatus.FORBIDDEN);
+        }
+
+        current.setSeats(details.getSeats());
+        current.setCarregistration(details.getCarregistration());
+        current.setAdditionalInfo(details.getAdditionalInfo());
+        current.setModel(details.getModel());
+
+        return vehicleRepository.save(current);
+    }
+
+    @Override
+    @Transactional
+    public void deleteVehicle(Integer id, String emailRequestor) {
+        Vehicle current = vehicleRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Véhicule introuvable", HttpStatus.NOT_FOUND));
+
+        if (!current.getOwner().getUser().getEmail().equals(emailRequestor)) {
+            throw new BusinessException("Action interdite", HttpStatus.FORBIDDEN);
+        }
+
+        vehicleRepository.delete(current);
     }
 }

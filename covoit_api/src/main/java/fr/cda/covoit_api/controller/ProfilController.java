@@ -5,6 +5,7 @@ import fr.cda.covoit_api.domain.entity.Profil;
 import fr.cda.covoit_api.dto.response.ProfilResponse;
 import fr.cda.covoit_api.mapper.EntityMapper;
 import fr.cda.covoit_api.service.interfaces.IProfilService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,20 @@ public class ProfilController {
     private final EntityMapper entityMapper;
 
     @PostMapping
-    public ResponseEntity<ProfilResponse> create(@RequestBody ProfilRequest dto, Principal principal) {
+    public ResponseEntity<ProfilResponse> create(@Valid @RequestBody ProfilRequest dto, Principal principal) {
         Profil saved = profilService.createProfil(dto, principal.getName());
         return new ResponseEntity<>(entityMapper.toProfilResponse(saved), HttpStatus.CREATED);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ProfilResponse> update(@PathVariable Integer id, @RequestBody ProfilRequest dto, Principal principal) {
+    public ResponseEntity<ProfilResponse> update(@PathVariable Integer id,@Valid @RequestBody ProfilRequest dto, Principal principal) {
         Profil updated = profilService.updateProfil(id, dto, principal.getName());
         return ResponseEntity.ok(entityMapper.toProfilResponse(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id, Principal principal) {
+        profilService.deleteProfil(id, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 }

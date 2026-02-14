@@ -1,11 +1,15 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.domain.entity.Icon;
 import fr.cda.covoit_api.domain.entity.Location;
 import fr.cda.covoit_api.domain.entity.Route;
 import fr.cda.covoit_api.dto.request.RouteRequest;
 import fr.cda.covoit_api.dto.response.RouteResponse;
+import fr.cda.covoit_api.exception.BusinessException;
 import fr.cda.covoit_api.mapper.EntityMapper;
+import fr.cda.covoit_api.repository.IconRepository;
 import fr.cda.covoit_api.service.interfaces.IRouteService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -24,6 +28,7 @@ public class RouteController {
 
     private final IRouteService routeService;
     private final EntityMapper entityMapper;
+    private final IconRepository iconRepository;
 
     @GetMapping
     public ResponseEntity<List<RouteResponse>> search(
@@ -31,21 +36,18 @@ public class RouteController {
             @RequestParam(required = false) String arrivalcity,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate tripdate) {
 
-        List<Route> routes = routeService.searchRoutes(startingcity, arrivalcity, tripdate);
-
-        List<RouteResponse> responses = routes.stream().map(route -> {
-            Map<String, Location> locations = routeService.getLocationsForRoute(route.getId());
-            return entityMapper.toRouteResponse(route, locations.get("starting"), locations.get("arrival"));
-        }).toList();
-
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(routeService.searchRoutesWithDetails(startingcity, arrivalcity, tripdate));
     }
 
     @PostMapping
-    public ResponseEntity<RouteResponse> create(@RequestBody RouteRequest dto, Principal principal) {
+    public ResponseEntity<RouteResponse> create(@Valid @RequestBody RouteRequest dto, Principal principal) {
         Location start = entityMapper.toLocation(dto.getStartingAddress());
         Location end = entityMapper.toLocation(dto.getArrivalAddress());
         Route route = entityMapper.toRoute(dto);
+
+        Icon icon = iconRepository.findById(dto.getIconId())
+                .orElseThrow(() -> new BusinessException("Icône de préférence non trouvée", HttpStatus.NOT_FOUND));
+        route.setIcon(icon);
 
         Route saved = routeService.createRoute(route, start, end, principal.getName());
 
@@ -53,6 +55,40 @@ public class RouteController {
                 entityMapper.toRouteResponse(saved, start, end),
                 HttpStatus.CREATED
         );
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<RouteResponse> update(
+            @PathVariable Integer id,
+            @Valid @RequestBody RouteRequest dto,
+            Principal principal) {
+
+        Route updated = routeService.updateRoute(id, dto, principal.getName());
+
+        // Récupération des locations mises à jour pour la réponse
+        Map<String, Location> locations = routeService.getLocationsForRoute(id);
+
+        return ResponseEntity.ok(
+                entityMapper.toRouteResponse(updated, locations.get("starting"), locations.get("arrival"))
+        );
+    }
+
+    @PatchMapping("/{id}/seats")
+    public ResponseEntity<RouteResponse> updateSeats(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Short> body,
+            Principal principal) {
+
+        Short newSeats = body.get("availableSeats");
+        if (newSeats == null || newSeats < 1) {
+            throw new BusinessException("Le nombre de places doit être supérieur à 0", HttpStatus.BAD_REQUEST);
+        }
+
+        Route updated = routeService.updateRouteSeats(id, newSeats, principal.getName());
+
+        // Pour le retour, on récupère les locations pour le mapper
+        Map<String, Location> locations = routeService.getLocationsForRoute(id);
+        return ResponseEntity.ok(entityMapper.toRouteResponse(updated, locations.get("starting"), locations.get("arrival")));
     }
 
     @GetMapping("/{id}")

@@ -1,12 +1,12 @@
 package fr.cda.covoit_api.mapper;
 
-import fr.cda.covoit_api.domain.entity.Location;
-import fr.cda.covoit_api.domain.entity.Profil;
-import fr.cda.covoit_api.domain.entity.Route;
+import fr.cda.covoit_api.domain.entity.*;
 import fr.cda.covoit_api.dto.request.RouteRequest;
+import fr.cda.covoit_api.dto.request.VehicleRequest;
 import fr.cda.covoit_api.dto.response.LocationResponse;
 import fr.cda.covoit_api.dto.response.ProfilResponse;
 import fr.cda.covoit_api.dto.response.RouteResponse;
+import fr.cda.covoit_api.dto.response.VehicleResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -41,6 +41,9 @@ public class EntityMapper {
         res.setAvailableSeats(route.getPlace());
         res.setDate(route.getDate());
         res.setHour(route.getHour());
+        if (route.getIcon() != null) {
+            res.setIconLabel(route.getIcon().getLabel());
+        }
         res.setDriverName(route.getDriver().getFirstname() + " " + route.getDriver().getLastname());
         res.setDeparture(toLocationResponse(start));
         res.setArrival(toLocationResponse(end));
@@ -67,5 +70,32 @@ public class EntityMapper {
         route.setHour(dto.getTripHour());
         route.setDistance(dto.getKms());
         return route;
+    }
+
+    public Vehicle toVehicle(VehicleRequest dto, Model model) {
+        if (dto == null) return null;
+        Vehicle vehicle = new Vehicle();
+        vehicle.setSeats(dto.getSeats());
+        vehicle.setCarregistration(dto.getCarregistration());
+        vehicle.setAdditionalInfo(dto.getAdditionalInfo());
+        vehicle.setModel(model);
+        return vehicle;
+    }
+
+    public VehicleResponse toVehicleResponse(Vehicle vehicle) {
+        if (vehicle == null) return null;
+        VehicleResponse res = new VehicleResponse();
+        res.setId(vehicle.getId());
+        res.setSeats(vehicle.getSeats());
+        res.setCarregistration(vehicle.getCarregistration());
+        res.setAdditionalInfo(vehicle.getAdditionalInfo());
+
+        if (vehicle.getModel() != null) {
+            res.setModelName(vehicle.getModel().getLabel());
+            if (vehicle.getModel().getBrand() != null) {
+                res.setBrandName(vehicle.getModel().getBrand().getLabel());
+            }
+        }
+        return res;
     }
 }
