@@ -9,6 +9,8 @@ import fr.cda.covoit_api.exception.BusinessException;
 import fr.cda.covoit_api.mapper.EntityMapper;
 import fr.cda.covoit_api.repository.IconRepository;
 import fr.cda.covoit_api.service.interfaces.IRouteService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,13 +25,17 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trips")
+@Tag(name = "Trajets", description = "Gestion des annonces de covoiturage")
 @RequiredArgsConstructor
 public class RouteController {
 
     private final IRouteService routeService;
     private final EntityMapper entityMapper;
     private final IconRepository iconRepository;
+    private static final String ARRIVAL = "arrival";
+    private static final String STARTING = "starting";
 
+    @Operation(summary = "Rechercher des trajets", description = "Permet de filtrer par ville et date")
     @GetMapping
     public ResponseEntity<List<RouteResponse>> search(
             @RequestParam(required = false) String startingcity,
@@ -69,7 +75,7 @@ public class RouteController {
         Map<String, Location> locations = routeService.getLocationsForRoute(id);
 
         return ResponseEntity.ok(
-                entityMapper.toRouteResponse(updated, locations.get("starting"), locations.get("arrival"))
+                entityMapper.toRouteResponse(updated, locations.get(STARTING), locations.get(ARRIVAL))
         );
     }
 
@@ -88,7 +94,7 @@ public class RouteController {
 
         // Pour le retour, on récupère les locations pour le mapper
         Map<String, Location> locations = routeService.getLocationsForRoute(id);
-        return ResponseEntity.ok(entityMapper.toRouteResponse(updated, locations.get("starting"), locations.get("arrival")));
+        return ResponseEntity.ok(entityMapper.toRouteResponse(updated, locations.get(STARTING), locations.get(ARRIVAL)));
     }
 
     @GetMapping("/{id}")
@@ -96,7 +102,7 @@ public class RouteController {
         Route route = routeService.getById(id);
         Map<String, Location> locations = routeService.getLocationsForRoute(id);
         return ResponseEntity.ok(
-                entityMapper.toRouteResponse(route, locations.get("starting"), locations.get("arrival"))
+                entityMapper.toRouteResponse(route, locations.get(STARTING), locations.get(ARRIVAL))
         );
     }
 
