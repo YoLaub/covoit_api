@@ -28,7 +28,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtFilter) throws BusinessException {
 
         final String ENDPOINT_BRAND = "/api/brands/**";
-        final String ADMIN = "/api/brands/**";
+        final String ADMIN = "ADMIN";
 
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
