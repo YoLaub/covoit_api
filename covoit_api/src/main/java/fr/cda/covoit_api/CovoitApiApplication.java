@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 public class CovoitApiApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(CovoitApiApplication.class, args);
 	}
 

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cars")
@@ -59,5 +60,17 @@ public class VehicleController {
     public ResponseEntity<Void> delete(@PathVariable Integer id, Principal principal) {
         profilService.deleteVehicle(id, principal.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<VehicleResponse>> getAllCars() {
+        return ResponseEntity.ok(profilService.getAllVehicles().stream()
+                .map(entityMapper::toVehicleResponse).toList());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<VehicleResponse> getCarById(@PathVariable Integer id) {
+        Vehicle vehicle = profilService.getVehicleById(id);
+        return ResponseEntity.ok(entityMapper.toVehicleResponse(vehicle));
     }
 }

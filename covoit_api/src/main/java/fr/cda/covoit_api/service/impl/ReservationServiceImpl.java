@@ -1,6 +1,7 @@
 package fr.cda.covoit_api.service.impl;
 
 import fr.cda.covoit_api.domain.entity.*;
+import fr.cda.covoit_api.dto.response.ProfilResponse;
 import fr.cda.covoit_api.dto.response.ReservationResponse;
 import fr.cda.covoit_api.mapper.EntityMapper;
 import fr.cda.covoit_api.repository.*;
@@ -114,5 +115,20 @@ public class ReservationServiceImpl implements IReservationService {
             Map<String, Location> locs = routeService.getLocationsForRoute(res.getRoute().getId());
             return entityMapper.toReservationResponse(res, locs.get("starting"), locs.get("arrival"));
         }).toList();
+    }
+
+    @Override
+    public List<ProfilResponse> getPassengersByRouteId(Integer routeId) {
+        if (!routeRepository.existsById(routeId)) {
+            throw new BusinessException("Trajet non trouvé", HttpStatus.NOT_FOUND);
+        }
+        // Récupère toutes les entrées UserRoute (réservations) pour ce trajet
+        List<UserRoute> reservations = userRouteRepository.findByRouteId(routeId);
+
+        // On filtre pour ne garder que les passagers confirmés et on map vers ProfilResponse
+        return reservations.stream()
+                .filter(res -> !"cancelled".equals(res.getStatus()))
+                .map(res -> entityMapper.toProfilResponse(res.getPassenger()))
+                .toList();
     }
 }

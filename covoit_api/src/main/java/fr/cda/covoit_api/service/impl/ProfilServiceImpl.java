@@ -160,4 +160,27 @@ public class ProfilServiceImpl implements IProfilService {
             return entityMapper.toRouteResponse(route, locs.get("starting"), locs.get("arrival"));
         }).toList();
     }
+
+    @Override
+    public List<Profil> getAllProfils() {
+        return profilRepository.findAll();
+    }
+
+    @Override
+    public Profil getProfilById(Integer id) {
+        return profilRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(PROFIL_NOT_FOUND, HttpStatus.NOT_FOUND));
+    }
+
+    @Override
+    public List<Vehicle> getAllVehicles() {
+        return vehicleRepository.findAll();
+    }
+
+    @Override
+    public Vehicle getVehicleById(Integer id) {
+        return vehicleRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Véhicule non trouvé", HttpStatus.NOT_FOUND));
+    }
+
 }

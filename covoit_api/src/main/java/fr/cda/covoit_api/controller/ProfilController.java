@@ -50,4 +50,17 @@ public class ProfilController {
     public ResponseEntity<List<RouteResponse>> getTripsAsPassenger(@PathVariable Integer id) {
         return ResponseEntity.ok(profilService.getPassengerTrips(id));
     }
+
+    @GetMapping
+// @PreAuthorize("hasRole('ADMIN')") // Optionnel selon votre config de sécurité
+    public ResponseEntity<List<ProfilResponse>> getAll() {
+        return ResponseEntity.ok(profilService.getAllProfils().stream()
+                .map(entityMapper::toProfilResponse).toList());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProfilResponse> getById(@PathVariable Integer id) {
+        Profil profil = profilService.getProfilById(id);
+        return ResponseEntity.ok(entityMapper.toProfilResponse(profil));
+    }
 }

@@ -29,14 +29,20 @@ public class SecurityConfig {
 
         final String ENDPOINT_BRAND = "/api/brands/**";
         final String ADMIN = "ADMIN";
+        final String API_PERSONS = "/api/persons/**";
 
         http.csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/register", "/login", "/health", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
+            .requestMatchers("/register", "/login", "/health","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
             .requestMatchers(HttpMethod.POST, ENDPOINT_BRAND).hasRole(ADMIN)
             .requestMatchers(HttpMethod.PUT, ENDPOINT_BRAND).hasRole(ADMIN)
             .requestMatchers(HttpMethod.DELETE, ENDPOINT_BRAND).hasRole(ADMIN)
+            .requestMatchers(HttpMethod.DELETE, API_PERSONS).hasRole(ADMIN)
+            .requestMatchers(HttpMethod.DELETE, API_PERSONS).hasRole(ADMIN)
+            .requestMatchers(HttpMethod.GET, "/api/persons").hasRole(ADMIN)
+            .requestMatchers(HttpMethod.GET, "/api/cars").hasRole(ADMIN)
+            .requestMatchers(HttpMethod.PATCH, API_PERSONS).authenticated()
             .requestMatchers("/api/**").authenticated()
             .anyRequest().authenticated()
                 );

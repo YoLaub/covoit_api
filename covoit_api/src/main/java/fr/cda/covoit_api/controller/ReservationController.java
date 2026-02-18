@@ -1,6 +1,7 @@
 package fr.cda.covoit_api.controller;
 
 import fr.cda.covoit_api.domain.entity.UserRoute;
+import fr.cda.covoit_api.dto.response.ProfilResponse;
 import fr.cda.covoit_api.dto.response.ReservationResponse;
 import fr.cda.covoit_api.service.interfaces.IReservationService;
 import org.springframework.http.ResponseEntity;
@@ -34,4 +35,10 @@ public class ReservationController {
         reservationService.cancelReservation(id, principal.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/person")
+    public ResponseEntity<List<ProfilResponse>> getRoutePassengers(@PathVariable Integer id) {
+        return ResponseEntity.ok(reservationService.getPassengersByRouteId(id));
+    }
+
 }

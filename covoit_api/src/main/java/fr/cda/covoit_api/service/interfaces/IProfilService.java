@@ -22,4 +22,8 @@ public interface IProfilService {
     void deleteVehicle(Integer id, String email);
     List<RouteResponse> getDriverTrips(Integer profilId);
     List<RouteResponse> getPassengerTrips(Integer profilId);
+    List<Profil> getAllProfils();
+    Profil getProfilById(Integer id);
+    List<Vehicle> getAllVehicles();
+    Vehicle getVehicleById(Integer id);
 }
