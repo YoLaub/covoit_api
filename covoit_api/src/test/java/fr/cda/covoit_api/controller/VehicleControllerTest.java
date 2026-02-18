@@ -1,5 +1,6 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.AbstractIntegrationTest;
 import fr.cda.covoit_api.domain.entity.Model;
 import fr.cda.covoit_api.domain.entity.Profil;
 import fr.cda.covoit_api.domain.entity.Vehicle;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,12 +24,13 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class VehicleControllerTest {
+class VehicleControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -70,11 +71,9 @@ class VehicleControllerTest {
     }
 
     // ============================================================
-    // POST /api/cars
-    // Réf: VehicleController.java → create()
+    // POST /api/cars → authenticated()
     // ============================================================
     @Test
-    @WithMockUser(username = "user@test.com")
     void create_ShouldReturn201() throws Exception {
         when(profilRepository.findByUserEmail("user@test.com")).thenReturn(Optional.of(profil));
         when(modelRepository.findById(1)).thenReturn(Optional.of(model));
@@ -83,6 +82,7 @@ class VehicleControllerTest {
         when(entityMapper.toVehicleResponse(vehicle)).thenReturn(vehicleResponse);
 
         mockMvc.perform(post("/api/cars")
+                        .with(user("user@test.com").roles("USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"seats\":5,\"carregistration\":\"AB-123-CD\",\"modelId\":1}"))
                 .andExpect(status().isCreated());
@@ -97,25 +97,22 @@ class VehicleControllerTest {
     }
 
     // ============================================================
-    // GET /api/cars/my-car
-    // Réf: VehicleController.java → getMyVehicle()
+    // GET /api/cars/my-car → authenticated()
     // ============================================================
     @Test
-    @WithMockUser(username = "user@test.com")
     void getMyVehicle_ShouldReturn200() throws Exception {
         when(profilService.getVehicleByEmail("user@test.com")).thenReturn(vehicle);
         when(entityMapper.toVehicleResponse(vehicle)).thenReturn(vehicleResponse);
 
-        mockMvc.perform(get("/api/cars/my-car"))
+        mockMvc.perform(get("/api/cars/my-car")
+                        .with(user("user@test.com").roles("USER")))
                 .andExpect(status().isOk());
     }
 
     // ============================================================
-    // PUT /api/cars/{id}
-    // Réf: VehicleController.java → update()
+    // PUT /api/cars/{id} → authenticated()
     // ============================================================
     @Test
-    @WithMockUser(username = "user@test.com")
     void update_ShouldReturn200() throws Exception {
         when(modelRepository.findById(1)).thenReturn(Optional.of(model));
         when(entityMapper.toVehicle(any(), eq(model))).thenReturn(vehicle);
@@ -123,50 +120,55 @@ class VehicleControllerTest {
         when(entityMapper.toVehicleResponse(vehicle)).thenReturn(vehicleResponse);
 
         mockMvc.perform(put("/api/cars/1")
+                        .with(user("user@test.com").roles("USER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"seats\":5,\"carregistration\":\"AB-123-CD\",\"modelId\":1}"))
                 .andExpect(status().isOk());
     }
 
     // ============================================================
-    // DELETE /api/cars/{id}
-    // Réf: VehicleController.java → delete()
+    // DELETE /api/cars/{id} → authenticated()
     // ============================================================
     @Test
-    @WithMockUser(username = "user@test.com")
     void delete_ShouldReturn204() throws Exception {
-        mockMvc.perform(delete("/api/cars/1"))
+        mockMvc.perform(delete("/api/cars/1")
+                        .with(user("user@test.com").roles("USER")))
                 .andExpect(status().isNoContent());
 
         verify(profilService).deleteVehicle(1, "user@test.com");
     }
 
     // ============================================================
-    // GET /api/cars
-    // Réf: VehicleController.java → getAllCars()
+    // GET /api/cars → hasRole(ADMIN)
     // ============================================================
     @Test
-    @WithMockUser
-    void getAllCars_ShouldReturn200() throws Exception {
+    void getAllCars_WithAdmin_ShouldReturn200() throws Exception {
         when(profilService.getAllVehicles()).thenReturn(List.of(vehicle));
         when(entityMapper.toVehicleResponse(vehicle)).thenReturn(vehicleResponse);
 
-        mockMvc.perform(get("/api/cars"))
+        mockMvc.perform(get("/api/cars")
+                        .with(user("admin@test.com").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
     }
 
+    @Test
+    void getAllCars_WithUser_ShouldReturn403() throws Exception {
+        mockMvc.perform(get("/api/cars")
+                        .with(user("user@test.com").roles("USER")))
+                .andExpect(status().isForbidden());
+    }
+
     // ============================================================
-    // GET /api/cars/{id}
-    // Réf: VehicleController.java → getCarById()
+    // GET /api/cars/{id} → authenticated()
     // ============================================================
     @Test
-    @WithMockUser
     void getCarById_ShouldReturn200() throws Exception {
         when(profilService.getVehicleById(1)).thenReturn(vehicle);
         when(entityMapper.toVehicleResponse(vehicle)).thenReturn(vehicleResponse);
 
-        mockMvc.perform(get("/api/cars/1"))
+        mockMvc.perform(get("/api/cars/1")
+                        .with(user("user@test.com").roles("USER")))
                 .andExpect(status().isOk());
     }
 }

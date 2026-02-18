@@ -1,5 +1,6 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.AbstractIntegrationTest;
 import fr.cda.covoit_api.dto.response.AuthResponse;
 import fr.cda.covoit_api.service.interfaces.IAuthService;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class AuthControllerTest {
+class AuthControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

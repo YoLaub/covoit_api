@@ -1,5 +1,6 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.AbstractIntegrationTest;
 import fr.cda.covoit_api.domain.entity.Icon;
 import fr.cda.covoit_api.domain.entity.Location;
 import fr.cda.covoit_api.domain.entity.Route;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class RouteControllerTest {
+class RouteControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

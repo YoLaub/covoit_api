@@ -1,5 +1,6 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.AbstractIntegrationTest;
 import fr.cda.covoit_api.domain.entity.Brand;
 import fr.cda.covoit_api.dto.response.BrandResponse;
 import fr.cda.covoit_api.mapper.EntityMapper;
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class BrandControllerTest {
+class BrandControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
