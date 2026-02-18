@@ -13,7 +13,7 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        final String securitySchemeName = "x-auth-token";
+        final String securitySchemeName = "Bearer Authentication";
         return new OpenAPI()
                 .info(new Info()
                         .title("Covoit GRETA API")
@@ -23,9 +23,9 @@ public class OpenApiConfig {
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
                                 new SecurityScheme()
-                                        .name(securitySchemeName)
-                                        .type(SecurityScheme.Type.APIKEY)
-                                        .in(SecurityScheme.In.HEADER)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
                                         .description("Entrez votre jeton JWT")));
     }
 }

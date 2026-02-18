@@ -43,6 +43,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/persons").hasRole(ADMIN)
             .requestMatchers(HttpMethod.GET, "/api/cars").hasRole(ADMIN)
             .requestMatchers(HttpMethod.PATCH, API_PERSONS).authenticated()
+            .requestMatchers(HttpMethod.GET, API_PERSONS).authenticated()
             .requestMatchers("/api/**").authenticated()
             .anyRequest().authenticated()
                 );

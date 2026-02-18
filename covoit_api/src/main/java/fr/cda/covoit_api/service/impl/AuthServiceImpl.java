@@ -47,7 +47,6 @@ public class AuthServiceImpl implements IAuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        // Désormais opérationnel grâce aux repositories créés
         user.setRole(roleRepository.findByLabel("USER")
                 .orElseThrow(() -> new RuntimeException("Rôle par défaut non configuré")));
         user.setStatus(statusRepository.findByLabel("ACTIVE")

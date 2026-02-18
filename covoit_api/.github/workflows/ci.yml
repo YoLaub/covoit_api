@@ -60,7 +60,7 @@ jobs:
           path: covoit_api/target/site/jacoco/
 
   # ============================================================
-  # JOB 2 : Déploiement sur Render (uniquement sur push main)
+  # JOB 2 : Déploiement sur Render
   # ============================================================
   deploy:
     name: Deploy to Render
