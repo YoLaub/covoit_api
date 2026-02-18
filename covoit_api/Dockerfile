@@ -1,5 +1,5 @@
 # ============================================================
-# Étape 1 : Build du JAR avec Maven
+# Étape 1 : Build du WAR avec Maven
 # ============================================================
 FROM maven:3.9-eclipse-temurin-24 AS build
 WORKDIR /app
@@ -13,8 +13,8 @@ RUN mvn clean package -DskipTests -B
 # ============================================================
 FROM eclipse-temurin:24-jre
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.war app.war
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.war"]
