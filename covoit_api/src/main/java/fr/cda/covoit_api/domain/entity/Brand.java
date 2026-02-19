@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "brand")
 @Getter
@@ -20,4 +22,7 @@ public class Brand {
 
     @Column(nullable = false, unique = true)
     private String label;
+
+    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Model> models;
 }
