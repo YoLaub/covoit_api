@@ -23,6 +23,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contrôleur REST pour la gestion des trajets (routes).
+ * Permet la recherche, la création, la mise à jour et la suppression des annonces de covoiturage.
+ *
+ * @author Yoann Laubert
+ * @version 1.0
+ */
 @RestController
 @RequestMapping("/api/trips")
 @Tag(name = "Trajets", description = "Gestion des annonces de covoiturage")
@@ -35,6 +42,15 @@ public class RouteController {
     private static final String ARRIVAL = "arrival";
     private static final String STARTING = "starting";
 
+
+    /**
+     * Recherche des trajets selon des critères géographiques et temporels.
+     *
+     * @param startingcity Nom de la ville de départ (optionnel).
+     * @param arrivalcity Nom de la ville d'arrivée (optionnel).
+     * @param tripdate Date du trajet au format ISO (optionnel).
+     * @return ResponseEntity contenant la liste des {@link RouteResponse}.
+     */
     @Operation(summary = "Rechercher des trajets", description = "Permet de filtrer par ville et date")
     @GetMapping
     public ResponseEntity<List<RouteResponse>> search(
@@ -45,6 +61,15 @@ public class RouteController {
         return ResponseEntity.ok(routeService.searchRoutesWithDetails(startingcity, arrivalcity, tripdate));
     }
 
+
+    /**
+     * Crée un nouveau trajet pour l'utilisateur authentifié.
+     *
+     * @param dto Objet de transfert contenant les détails du trajet et des adresses.
+     * @param principal Utilisateur actuellement connecté (conducteur).
+     * @return ResponseEntity contenant le trajet créé avec statut 201.
+     * @throws BusinessException si l'icône de préférence n'est pas trouvée.
+     */
     @PostMapping
     public ResponseEntity<RouteResponse> create(@Valid @RequestBody RouteRequest dto, Principal principal) {
         Location start = entityMapper.toLocation(dto.getStartingAddress());

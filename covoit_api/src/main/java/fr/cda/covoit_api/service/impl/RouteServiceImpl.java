@@ -17,6 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implémentation du service métier de gestion des trajets.
+ * Gère la persistance transactionnelle des trajets, des adresses et des liens RouteLocation.
+ *
+ * @see fr.cda.covoit_api.service.interfaces.IRouteService
+ */
 @Service
 @RequiredArgsConstructor
 public class RouteServiceImpl implements IRouteService {
@@ -33,6 +39,16 @@ public class RouteServiceImpl implements IRouteService {
     private final EntityMapper entityMapper;
     private final UserRouteRepository userRouteRepository;
 
+    /**
+     * Crée un trajet et initialise les localisations de départ et d'arrivée.
+     * Utilise une transaction pour garantir l'intégrité des données entre 'route' et 'route_location'.
+     *
+     * @param route L'entité trajet pré-remplie.
+     * @param start L'entité localisation de départ.
+     * @param end L'entité localisation d'arrivée.
+     * @param email Email du conducteur pour récupération du profil.
+     * @return Le trajet sauvegardé avec ses relations.
+     */
     @Override
     @Transactional
     public Route createRoute(Route route, Location start, Location end, String email) {
@@ -107,6 +123,15 @@ public class RouteServiceImpl implements IRouteService {
         routeRepository.deleteById(id);
     }
 
+    /**
+     * Met à jour la capacité en places d'un trajet existant.
+     * Vérifie que la nouvelle capacité n'est pas inférieure au nombre de passagers déjà confirmés.
+     *
+     * @param id Identifiant du trajet.
+     * @param newCapacity Nouveau nombre de places disponibles.
+     * @param email Email du demandeur (vérification de propriété).
+     * @throws BusinessException (409 Conflict) si la capacité est insuffisante pour les réservations actuelles.
+     */
     @Override
     @Transactional
     public Route updateRouteSeats(Integer id, Short newCapacity, String email) {

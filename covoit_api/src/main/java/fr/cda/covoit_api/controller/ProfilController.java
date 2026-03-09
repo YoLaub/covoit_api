@@ -63,4 +63,10 @@ public class ProfilController {
         Profil profil = profilService.getProfilById(id);
         return ResponseEntity.ok(entityMapper.toProfilResponse(profil));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<ProfilResponse> getMyProfil(Principal principal) {
+        Profil profil = profilService.getProfilByEmail(principal.getName());
+        return ResponseEntity.ok(entityMapper.toProfilResponse(profil));
+    }
 }
