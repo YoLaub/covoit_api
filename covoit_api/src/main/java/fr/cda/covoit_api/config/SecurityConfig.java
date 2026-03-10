@@ -64,6 +64,7 @@ public class SecurityConfig {
         final String ENDPOINT_BRAND = "/api/brands/**";
         final String ADMIN = "ADMIN";
         final String API_PERSONS = "/api/persons/**";
+        final String API_MODEL = "/api/models/**";
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
@@ -79,6 +80,9 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.DELETE, API_PERSONS).hasRole(ADMIN)
             .requestMatchers(HttpMethod.GET, "/api/persons").hasRole(ADMIN)
             .requestMatchers(HttpMethod.GET, "/api/cars").hasRole(ADMIN)
+            .requestMatchers(HttpMethod.POST, API_MODEL).hasRole(ADMIN)
+            .requestMatchers(HttpMethod.PUT, API_MODEL).hasRole(ADMIN)
+            .requestMatchers(HttpMethod.DELETE, API_MODEL).hasRole(ADMIN)
              // Accès utilisateurs authentifié
             .requestMatchers(HttpMethod.PATCH, API_PERSONS).authenticated()
             .requestMatchers(HttpMethod.GET, API_PERSONS).authenticated()

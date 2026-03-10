@@ -118,4 +118,14 @@ public class EntityMapper {
 
         return res;
     }
+
+    public ModelResponse toModelResponse(Model model) {
+        if (model == null) return null;
+        return new ModelResponse(
+                model.getId(),
+                model.getLabel(),
+                model.getBrand().getId(),
+                model.getBrand().getLabel()
+        );
+    }
 }
