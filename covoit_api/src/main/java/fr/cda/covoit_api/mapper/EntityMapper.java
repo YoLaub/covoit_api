@@ -38,10 +38,40 @@ public class EntityMapper {
         res.setAvailableSeats(route.getPlace());
         res.setDate(route.getDate());
         res.setHour(route.getHour());
+
         if (route.getIcon() != null) {
             res.setIconLabel(route.getIcon().getLabel());
         }
-        res.setDriverName(route.getDriver().getFirstname() + " " + route.getDriver().getLastname());
+
+        // Driver name (rétro-compatible)
+        Profil driver = route.getDriver();
+        res.setDriverName(driver.getFirstname() + " " + driver.getLastname());
+
+        // Driver details
+        RouteResponse.DriverInfo driverInfo = new RouteResponse.DriverInfo();
+        driverInfo.setProfilId(driver.getId());
+        driverInfo.setFirstname(driver.getFirstname());
+        driverInfo.setLastname(driver.getLastname());
+        driverInfo.setPhone(driver.getPhone());
+        driverInfo.setEmail(driver.getUser().getEmail());
+        res.setDriver(driverInfo);
+
+        // Vehicle details
+        if (driver.getVehicle() != null) {
+            Vehicle v = driver.getVehicle();
+            RouteResponse.VehicleInfo vehicleInfo = new RouteResponse.VehicleInfo();
+            vehicleInfo.setId(v.getId());
+            vehicleInfo.setSeats(v.getSeats());
+            vehicleInfo.setCarregistration(v.getCarregistration());
+            if (v.getModel() != null) {
+                vehicleInfo.setModel(v.getModel().getLabel());
+                if (v.getModel().getBrand() != null) {
+                    vehicleInfo.setBrand(v.getModel().getBrand().getLabel());
+                }
+            }
+            res.setVehicle(vehicleInfo);
+        }
+
         res.setDeparture(toLocationResponse(start));
         res.setArrival(toLocationResponse(end));
         return res;

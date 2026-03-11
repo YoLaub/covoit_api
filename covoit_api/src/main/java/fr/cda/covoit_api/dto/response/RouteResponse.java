@@ -4,28 +4,39 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-/**
- * Représentation simplifiée d'un trajet pour l'affichage en liste ou détail.
- * Agrège les informations du conducteur et les localisations formatées.
- */
 @Data
 public class RouteResponse {
-    /** Identifiant unique du trajet en base. */
     private Integer id;
-    /** Distance entre les deux points depart/arrivé */
     private Integer kms;
-    /** Nomre de place disponible en base. */
     private Short availableSeats;
-    /** Date du trajet en base. */
     private LocalDate date;
-    /** Heure du trajet en base. */
     private LocalTime hour;
-    /** Libellé de la préférence de confort (ex: "Non-fumeur"). */
     private String iconLabel;
-    /** Nom complet du conducteur (Concaténation Prénom + Nom). */
     private String driverName;
-    /** Détails du point de départ. @see LocationResponse */
     private LocationResponse departure;
-    /** Détails du point d'arrivée. @see LocationResponse */
     private LocationResponse arrival;
+
+    // Détails conducteur
+    private DriverInfo driver;
+
+    // Détails véhicule (nullable si pas de véhicule)
+    private VehicleInfo vehicle;
+
+    @Data
+    public static class DriverInfo {
+        private Integer profilId;
+        private String firstname;
+        private String lastname;
+        private String phone;
+        private String email;
+    }
+
+    @Data
+    public static class VehicleInfo {
+        private Integer id;
+        private String brand;
+        private String model;
+        private Short seats;
+        private String carregistration;
+    }
 }
