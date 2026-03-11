@@ -29,6 +29,12 @@ public class ProfilController {
         return new ResponseEntity<>(entityMapper.toProfilResponse(saved), HttpStatus.CREATED);
     }
 
+    @GetMapping("/me/trips-driver")
+    public ResponseEntity<List<RouteResponse>> getMyTripsAsDriver(Principal principal) {
+        Profil profil = profilService.getProfilByEmail(principal.getName());
+        return ResponseEntity.ok(profilService.getDriverTrips(profil.getId()));
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ProfilResponse> update(@PathVariable Integer id,@Valid @RequestBody ProfilRequest dto, Principal principal) {
         Profil updated = profilService.updateProfil(id, dto, principal.getName());
@@ -50,6 +56,7 @@ public class ProfilController {
     public ResponseEntity<List<RouteResponse>> getTripsAsPassenger(@PathVariable Integer id) {
         return ResponseEntity.ok(profilService.getPassengerTrips(id));
     }
+
 
     @GetMapping
 // @PreAuthorize("hasRole('ADMIN')") // Optionnel selon votre config de sécurité
