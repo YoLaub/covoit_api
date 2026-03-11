@@ -27,7 +27,7 @@ public class ReservationServiceImpl implements IReservationService {
     private final IEmailService emailService;
     private static final String STATUS_CANCELLED = "cancelled";
     private static final String STATUS_CONFIRMED = "confirmed";
-    private final IRouteService routeService; // Injection nécessaire
+    private final IRouteService routeService;
     private final EntityMapper entityMapper;
 
     @Override
@@ -57,6 +57,8 @@ public class ReservationServiceImpl implements IReservationService {
         if (currentPassengers >= route.getPlace()) {
             throw new BusinessException("Plus de places disponibles pour ce trajet", HttpStatus.CONFLICT);
         }
+        route.setPlace((short) (route.getPlace() - 1));
+        routeRepository.save(route);
 
         // Créer la réservation
         UserRoute reservation = new UserRoute();
@@ -92,6 +94,9 @@ public class ReservationServiceImpl implements IReservationService {
         if (STATUS_CANCELLED.equals(reservation.getStatus())) {
             throw new BusinessException("Cette réservation est déjà annulée", HttpStatus.BAD_REQUEST);
         }
+        Route route = reservation.getRoute();
+        route.setPlace((short) (route.getPlace() + 1));
+        routeRepository.save(route);
 
         reservation.setStatus(STATUS_CANCELLED);
         userRouteRepository.save(reservation);
@@ -127,7 +132,7 @@ public class ReservationServiceImpl implements IReservationService {
 
         // On filtre pour ne garder que les passagers confirmés et on map vers ProfilResponse
         return reservations.stream()
-                .filter(res -> !"cancelled".equals(res.getStatus()))
+                .filter(res -> !STATUS_CANCELLED.equals(res.getStatus()))
                 .map(res -> entityMapper.toProfilResponse(res.getPassenger()))
                 .toList();
     }

@@ -85,9 +85,29 @@ class EntityMapperTest {
         Icon icon = new Icon();
         icon.setLabel("car-icon");
 
+        User user = new User();
+        user.setEmail("jean@test.com");
+
+        Brand brand = new Brand();
+        brand.setLabel("Renault");
+
+        Model model = new Model();
+        model.setLabel("Clio");
+        model.setBrand(brand);
+
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(10);
+        vehicle.setSeats((short) 5);
+        vehicle.setCarregistration("AB-123-CD");
+        vehicle.setModel(model);
+
         Profil driver = new Profil();
+        driver.setId(1);
         driver.setFirstname("Jean");
         driver.setLastname("Dupont");
+        driver.setPhone("0612345678");
+        driver.setUser(user);
+        driver.setVehicle(vehicle);
 
         Route route = new Route();
         route.setId(1);
@@ -115,13 +135,36 @@ class EntityMapperTest {
         assertThat(result.getDriverName()).isEqualTo("Jean Dupont");
         assertThat(result.getDeparture()).isNotNull();
         assertThat(result.getArrival()).isNotNull();
+
+        // Driver details
+        assertThat(result.getDriver()).isNotNull();
+        assertThat(result.getDriver().getProfilId()).isEqualTo(1);
+        assertThat(result.getDriver().getFirstname()).isEqualTo("Jean");
+        assertThat(result.getDriver().getLastname()).isEqualTo("Dupont");
+        assertThat(result.getDriver().getPhone()).isEqualTo("0612345678");
+        assertThat(result.getDriver().getEmail()).isEqualTo("jean@test.com");
+
+        // Vehicle details
+        assertThat(result.getVehicle()).isNotNull();
+        assertThat(result.getVehicle().getId()).isEqualTo(10);
+        assertThat(result.getVehicle().getSeats()).isEqualTo((short) 5);
+        assertThat(result.getVehicle().getCarregistration()).isEqualTo("AB-123-CD");
+        assertThat(result.getVehicle().getModel()).isEqualTo("Clio");
+        assertThat(result.getVehicle().getBrand()).isEqualTo("Renault");
     }
 
     @Test
     void toRouteResponse_ShouldHandleNullIcon() {
+        User user = new User();
+        user.setEmail("jean@test.com");
+
         Profil driver = new Profil();
+        driver.setId(1);
         driver.setFirstname("Jean");
         driver.setLastname("Dupont");
+        driver.setPhone("0612345678");
+        driver.setUser(user);
+        driver.setVehicle(null);
 
         Route route = new Route();
         route.setId(1);
@@ -136,6 +179,46 @@ class EntityMapperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getIconLabel()).isNull();
+        assertThat(result.getVehicle()).isNull();
+    }
+
+    @Test
+    void toRouteResponse_ShouldHandleNullVehicleBrand() {
+        User user = new User();
+        user.setEmail("jean@test.com");
+
+        Model model = new Model();
+        model.setLabel("Clio");
+        model.setBrand(null);
+
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(10);
+        vehicle.setSeats((short) 5);
+        vehicle.setCarregistration("AB-123-CD");
+        vehicle.setModel(model);
+
+        Profil driver = new Profil();
+        driver.setId(1);
+        driver.setFirstname("Jean");
+        driver.setLastname("Dupont");
+        driver.setPhone("0612345678");
+        driver.setUser(user);
+        driver.setVehicle(vehicle);
+
+        Route route = new Route();
+        route.setId(1);
+        route.setDistance(100);
+        route.setPlace((short) 2);
+        route.setDate(LocalDate.now());
+        route.setHour(LocalTime.of(9, 0));
+        route.setIcon(null);
+        route.setDriver(driver);
+
+        RouteResponse result = mapper.toRouteResponse(route, new Location(), new Location());
+
+        assertThat(result.getVehicle()).isNotNull();
+        assertThat(result.getVehicle().getModel()).isEqualTo("Clio");
+        assertThat(result.getVehicle().getBrand()).isNull();
     }
 
     @Test
