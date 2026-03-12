@@ -3,15 +3,23 @@ package fr.cda.covoit_api.service.impl;
 import fr.cda.covoit_api.domain.entity.User;
 import fr.cda.covoit_api.dto.request.RegisterRequest;
 import fr.cda.covoit_api.dto.response.AuthResponse;
+import fr.cda.covoit_api.exception.BusinessException;
 import fr.cda.covoit_api.repository.RoleRepository;
 import fr.cda.covoit_api.repository.StatusRepository;
 import fr.cda.covoit_api.repository.UserRepository;
 import fr.cda.covoit_api.security.JwtTokenProvider;
 import fr.cda.covoit_api.service.interfaces.IAuthService;
+import fr.cda.covoit_api.service.interfaces.IEmailService;
+import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Impl&eacute;mentation du service d'authentification.
@@ -49,6 +57,8 @@ public class AuthServiceImpl implements IAuthService {
     /** R&eacute;f&eacute;rentiel d'acc&egrave;s aux donn&eacute;es des statuts. */
     private final StatusRepository statusRepository;
 
+    private final IEmailService emailService;
+
     /**
      * Constructeur avec injection des d&eacute;pendances.
      *
@@ -64,13 +74,15 @@ public class AuthServiceImpl implements IAuthService {
                            StatusRepository statusRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider tokenProvider,
-                           AuthenticationManager authenticationManager) {
+                           AuthenticationManager authenticationManager,
+                           IEmailService emailService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.statusRepository = statusRepository;
         this.passwordEncoder = passwordEncoder;
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
     }
 
     /**
@@ -143,5 +155,40 @@ public class AuthServiceImpl implements IAuthService {
                 .email(user.getEmail())
                 .role(user.getRole().getLabel())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Aucun compte avec cet email", HttpStatus.NOT_FOUND));
+
+        String token = UUID.randomUUID().toString();
+        user.setResetPasswordToken(token);
+        user.setResetPasswordExpiresAt(LocalDate.now().plusDays(1));
+        userRepository.save(user);
+
+        String resetLink = "https://ton-front.com/reset-password?token=" + token;
+        emailService.sendSimpleMessage(
+                email,
+                "Réinitialisation de votre mot de passe",
+                "Cliquez sur ce lien pour réinitialiser votre mot de passe : " + resetLink
+        );
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetPasswordToken(token)
+                .orElseThrow(() -> new BusinessException("Token invalide", HttpStatus.BAD_REQUEST));
+
+        if (user.getResetPasswordExpiresAt().isBefore(LocalDate.now())) {
+            throw new BusinessException("Le token a expiré", HttpStatus.BAD_REQUEST);
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordExpiresAt(null);
+        userRepository.save(user);
     }
 }

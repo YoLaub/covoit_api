@@ -1,7 +1,9 @@
 package fr.cda.covoit_api.controller;
 
+import fr.cda.covoit_api.dto.request.ForgotPasswordRequest;
 import fr.cda.covoit_api.dto.request.LoginRequest;
 import fr.cda.covoit_api.dto.request.RegisterRequest;
+import fr.cda.covoit_api.dto.request.ResetPasswordRequest;
 import fr.cda.covoit_api.dto.response.AuthResponse;
 import fr.cda.covoit_api.service.interfaces.IAuthService;
 import jakarta.validation.Valid;
@@ -26,5 +28,17 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request.getEmail(), request.getPassword()));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 }

@@ -71,7 +71,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
             // Routes publiques
-            .requestMatchers("/register", "/login", "/health","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
+            .requestMatchers("/register", "/login", "/forgot-password", "/reset-password", "/health","/v3/api-docs", "/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
             // Accès restreints aux Administrateurs
             .requestMatchers(HttpMethod.POST, ENDPOINT_BRAND).hasRole(ADMIN)
             .requestMatchers(HttpMethod.PUT, ENDPOINT_BRAND).hasRole(ADMIN)

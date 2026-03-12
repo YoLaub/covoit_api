@@ -6,4 +6,6 @@ import fr.cda.covoit_api.dto.response.AuthResponse;
 public interface IAuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(String email, String password);
+    void forgotPassword(String email);
+    void resetPassword(String token, String newPassword);
 }
