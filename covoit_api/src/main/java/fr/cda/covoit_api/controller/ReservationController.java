@@ -1,29 +1,39 @@
 package fr.cda.covoit_api.controller;
 
-import fr.cda.covoit_api.domain.entity.UserRoute;
+import fr.cda.covoit_api.domain.entity.Profil;
 import fr.cda.covoit_api.dto.response.ProfilResponse;
 import fr.cda.covoit_api.dto.response.ReservationResponse;
+import fr.cda.covoit_api.exception.BusinessException;
+import fr.cda.covoit_api.service.interfaces.IEmailService;
+import fr.cda.covoit_api.service.interfaces.IProfilService;
 import fr.cda.covoit_api.service.interfaces.IReservationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trips")
 public class ReservationController {
 
     private final IReservationService reservationService;
+    private final IProfilService profilService;
+    private final IEmailService emailService;
 
-    public ReservationController(IReservationService reservationService) {
+    public ReservationController(IReservationService reservationService, IProfilService profilService, IEmailService emailService) {
         this.reservationService = reservationService;
+        this.profilService = profilService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/{id}/person")
     public ResponseEntity<ReservationResponse> reserve(@PathVariable Integer id, Principal principal) {
         return ResponseEntity.ok(reservationService.reservePlace(id, principal.getName()));
     }
+
 
     @GetMapping("/my-reservations")
     public ResponseEntity<List<ReservationResponse>> getMyReservations(Principal principal) {
@@ -39,6 +49,28 @@ public class ReservationController {
     @GetMapping("/{id}/person")
     public ResponseEntity<List<ProfilResponse>> getRoutePassengers(@PathVariable Integer id) {
         return ResponseEntity.ok(reservationService.getPassengersByRouteId(id));
+    }
+
+    @PostMapping("/{tripId}/contact")
+    public ResponseEntity<Void> contactUser(
+            @PathVariable Integer tripId,
+            @RequestBody Map<String, Object> body,
+            Principal principal) {
+
+        Integer recipientProfilId = (Integer) body.get("recipientProfilId");
+        String subject = (String) body.get("subject");
+        String htmlContent = (String) body.get("htmlContent");
+
+        if (recipientProfilId == null || subject == null || htmlContent == null) {
+            throw new BusinessException("Tous les champs sont obligatoires", HttpStatus.BAD_REQUEST);
+        }
+
+        Profil recipient = profilService.getProfilById(recipientProfilId);
+        String recipientEmail = recipient.getUser().getEmail();
+
+        emailService.sendSimpleMessage(recipientEmail, subject, htmlContent);
+
+        return ResponseEntity.ok().build();
     }
 
 }

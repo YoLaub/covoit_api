@@ -38,9 +38,8 @@ public class Model {
      * Libell&eacute; du mod&egrave;le de v&eacute;hicule.
      * <p>Ce champ est obligatoire.</p>
      */
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String label;
-
     /**
      * Marque &agrave; laquelle ce mod&egrave;le est rattach&eacute;.
      * <p>
