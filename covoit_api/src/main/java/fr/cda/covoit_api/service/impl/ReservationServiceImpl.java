@@ -136,4 +136,13 @@ public class ReservationServiceImpl implements IReservationService {
                 .map(res -> entityMapper.toProfilResponse(res.getPassenger()))
                 .toList();
     }
+
+    @Override
+    public void contactUser(Integer recipientProfilId, String subject, String htmlContent) {
+        Profil recipient = profilRepository.findById(recipientProfilId)
+                .orElseThrow(() -> new BusinessException("Destinataire non trouvé", HttpStatus.NOT_FOUND));
+
+        String recipientEmail = recipient.getUser().getEmail();
+        emailService.sendSimpleMessage(recipientEmail, subject, htmlContent);
+    }
 }

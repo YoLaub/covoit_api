@@ -11,4 +11,5 @@ public interface IReservationService {
     void cancelReservation(Integer routeId, String passengerEmail);
     List<ReservationResponse> getPassengerReservations(String email);
     List<ProfilResponse> getPassengersByRouteId(Integer routeId);
+    void contactUser(Integer recipientProfilId, String subject, String htmlContent);
 }
