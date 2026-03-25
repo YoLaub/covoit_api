@@ -18,4 +18,5 @@ public class ProfilResponse {
     private String phone;
     /** Email récupéré depuis l'entité User liée. */
     private String email;
+    private boolean hasVehicle;
 }

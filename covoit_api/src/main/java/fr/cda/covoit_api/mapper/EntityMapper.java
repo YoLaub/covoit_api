@@ -17,6 +17,7 @@ public class EntityMapper {
         res.setLastname(profil.getLastname());
         res.setPhone(profil.getPhone());
         res.setEmail(profil.getUser().getEmail());
+        res.setHasVehicle(profil.getVehicle() != null);
         return res;
     }
 
