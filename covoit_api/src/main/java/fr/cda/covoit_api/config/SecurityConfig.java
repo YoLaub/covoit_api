@@ -76,8 +76,6 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, ENDPOINT_BRAND).hasRole(ADMIN)
             .requestMatchers(HttpMethod.PUT, ENDPOINT_BRAND).hasRole(ADMIN)
             .requestMatchers(HttpMethod.DELETE, ENDPOINT_BRAND).hasRole(ADMIN)
-            .requestMatchers(HttpMethod.DELETE, API_PERSONS).hasRole(ADMIN)
-            .requestMatchers(HttpMethod.DELETE, API_PERSONS).hasRole(ADMIN)
             .requestMatchers(HttpMethod.GET, "/api/persons").hasRole(ADMIN)
             .requestMatchers(HttpMethod.GET, "/api/cars").hasRole(ADMIN)
             .requestMatchers(HttpMethod.POST, API_MODEL).hasRole(ADMIN)
@@ -86,6 +84,7 @@ public class SecurityConfig {
              // Accès utilisateurs authentifié
             .requestMatchers(HttpMethod.PATCH, API_PERSONS).authenticated()
             .requestMatchers(HttpMethod.GET, API_PERSONS).authenticated()
+            .requestMatchers(HttpMethod.DELETE, API_PERSONS).authenticated()
             .requestMatchers("/api/**").authenticated()
             // Sécurité par défaut pour toute autre requête
             .anyRequest().authenticated()
